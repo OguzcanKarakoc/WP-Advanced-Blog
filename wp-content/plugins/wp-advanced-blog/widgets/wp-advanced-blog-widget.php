@@ -222,23 +222,19 @@ class Wp_Advanced_Blog_Widget extends WP_Widget
         $prefix = 'wp-ab-';
         $content = str_replace("wp-ab-postid", "wp-ab-postid=1", $instance['wp-ab-post_structure']);
 
-
-        echo "<pre>";
-        var_dump($instance);
-        echo "</pre>";
-
         $args = array(
             'category' => $instance['category']
         );
-        $query = new WP_Query($args);
+//        $query = new WP_Query($args);
 
 //        get_posts($args);
 
         $html = $args['before_widget'];
-        $test = do_shortcode($content, false);
-//        echo "<pre>";
-//        var_dump($test);
-//        echo "</pre>";
+
+        preg_match_all('/\[title(.*?)?\](?:(.+?)?\[\/title\])?/', $content, $matches);
+        echo "<pre>";
+        var_dump($content, $matches[0]);
+        echo "</pre>";
         $html .= $args['after_widget'];
         echo $html;
     }
