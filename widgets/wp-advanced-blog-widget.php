@@ -189,18 +189,7 @@ class Wp_Advanced_Blog_Widget extends WP_Widget
                 ?>
                 <label for="">single post structure</label>
                 <textarea class="widefat" name="<?= $arr['post_structure']['name'] ?>" id="<?= $arr['post_structure']['id'] ?>" cols="30" rows="10">
-                    &lt;p&gt;1: [title link='true' link-target='_blank' wp-ab-postid]&lt;/p&gt;
-                    &lt;p&gt;2: [Excerpt]&lt;/p&gt;
-                    &lt;p&gt;3: [Tags]&lt;/p&gt;
-                    &lt;p&gt;4: [Categories]&lt;/p&gt;
-                    &lt;p&gt;5: [FeaturedImage]&lt;/p&gt;
-                    &lt;p&gt;6: [FeaturedImageLink]&lt;/p&gt;
-                    &lt;p&gt;7: [PostLink]&lt;/p&gt;
-                    &lt;p&gt;8: [ViewCount]&lt;/p&gt;
-                    &lt;p&gt;9: [CommentCount]&lt;/p&gt;
-                    &lt;p&gt;10: [CustomField name='']&lt;/p&gt;
-                    &lt;p&gt;11: [PublishedDate format='']&lt;/p&gt;
-                    &lt;p&gt;12: [UpdatedDate format='']&lt;/p&gt;
+                    <?= $arr['post_structure']['instance'] ?>
                 </textarea>
             </p>
         </div>
@@ -222,19 +211,62 @@ class Wp_Advanced_Blog_Widget extends WP_Widget
         $prefix = 'wp-ab-';
         $content = str_replace("wp-ab-postid", "wp-ab-postid=1", $instance['wp-ab-post_structure']);
 
-        $args = array(
-            'category' => $instance['category']
-        );
-//        $query = new WP_Query($args);
+        $args = [
+            'posts_per_page' => 5
+        ];
 
-//        get_posts($args);
+
+//        $args = array(
+//            'posts_per_page'   => 5,
+//            'offset'           => 0,
+//            'cat'         => '',
+//            'category_name'    => '',
+//            'orderby'          => 'date',
+//            'order'            => 'DESC',
+//            'include'          => '',
+//            'exclude'          => '',
+//            'meta_key'         => '',
+//            'meta_value'       => '',
+//            'post_type'        => 'post',
+//            'post_mime_type'   => '',
+//            'post_parent'      => '',
+//            'author'	   => '',
+//            'author_name'	   => '',
+//            'post_status'      => 'publish',
+//            'suppress_filters' => true,
+//            'fields'           => '',
+//        );
+//        $posts_array = get_posts( $args );
+//        $query = new WP_Query($args);
+        global $post;
+
+        $myposts = get_posts($args);
 
         $html = $args['before_widget'];
 
-        preg_match_all('/\[title(.*?)?\](?:(.+?)?\[\/title\])?/', $content, $matches);
+        ?>
+        <ul>
+            <?php
+            foreach ($myposts as $post) : setup_postdata($post);
+                echo "<pre>";
+                var_dump($post);
+                echo "</pre>"; ?>
+                <li>
+                    <a href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
+                </li>
+            <?php endforeach; ?>
+        </ul>
+        <?php
+        wp_reset_postdata();
+
+
+        $regex = get_shortcode_regex();
+//        preg_match_all('/\[title(.*?)?\](?:(.+?)?\[\/title\])?/', $content, $matches);
+        preg_match_all('/' . $regex . '/s', $content, $matches);
         echo "<pre>";
-        var_dump($content, $matches[0]);
+        var_dump($regex, $matches[0]);
         echo "</pre>";
+
         $html .= $args['after_widget'];
         echo $html;
     }
