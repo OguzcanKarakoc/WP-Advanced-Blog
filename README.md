@@ -6,12 +6,77 @@ WP Advanced Blog is a wordpress plugin that aims to give webdevelopers more free
 
 The roadmap will be updated when new suggestions **being worked on**. If your suggestion is not on the list than it doesn't mean that I forgot about it, it simply means that I'm currently working on another item in the list. (Checked items will stay there for at least 1 week)
 
-- [ ] Custom Regular expressions for shortcodes (this should make it possible to put a shortcode in a html tag)
-- [ ] Nested shortcodes
-- [ ] Add Post Type filter
-- [ ] Allow
 - [ ] Query all posts using all the filters
-- [ ] Live pagination
+- [ ] attachment_id
+- [ ] author
+- [ ] author_name
+- [x] author__in
+- [x] author__not_in
+- [x] cache_results
+- [ ] cat
+- [ ] category__and
+- [ ] category__in
+- [ ] category__not_in
+- [ ] category_name
+- [ ] comment_count
+- [ ] comment_status
+- [ ] comments_per_page
+- [ ] date_query
+- [ ] day
+- [ ] exact
+- [ ] fields
+- [ ] hour
+- [ ] ignore_sticky_posts
+- [ ] m
+- [ ] meta_compare
+- [ ] meta_compare_key
+- [ ] meta_key
+- [ ] meta_query
+- [ ] meta_value
+- [ ] meta_value_num
+- [ ] menu_order
+- [ ] monthnum
+- [ ] name
+- [ ] nopaging
+- [ ] no_found_rows
+- [ ] offset
+- [ ] order
+- [ ] p
+- [ ] page
+- [ ] paged
+- [ ] page_id
+- [ ] pagename
+- [ ] perm
+- [ ] ping_status
+- [ ] post__in
+- [ ] post_mime_type
+- [ ] post__not_in
+- [ ] post_parent
+- [ ] post_parent__in
+- [ ] post_parent__not_in
+- [ ] post_type
+- [ ] post_status
+- [ ] posts_per_page
+- [ ] posts_per_archive_page
+- [ ] post_name__in
+- [ ] s
+- [ ] second
+- [ ] sentence
+- [ ] suppress_filters
+- [ ] tag
+- [ ] tag__and
+- [ ] tag__in
+- [ ] tag__not_in
+- [ ] tag_id
+- [ ] tag_slug__and
+- [ ] tag_slug__in
+- [ ] tax_query
+- [ ] title
+- [ ] update_post_meta_cache
+- [ ] lazy_load_term_meta
+- [ ] update_post_term_cache
+- [ ] w
+- [ ] year
 
 ## Installation
 

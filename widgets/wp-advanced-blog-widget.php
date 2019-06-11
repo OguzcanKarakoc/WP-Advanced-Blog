@@ -16,6 +16,7 @@ class Wp_Advanced_Blog_Widget extends WP_Widget
         $instance = $old_instance;
         $instance[$prefix . 'title'] = $new_instance[$prefix . 'title'];
         $instance[$prefix . 'category'] = $new_instance[$prefix . 'category'];
+        $instance[$prefix . 'author_inc'] = $new_instance[$prefix . 'author'];
         $instance[$prefix . 'tag'] = $new_instance[$prefix . 'tag'];
         $instance[$prefix . 'limit'] = $new_instance[$prefix . 'limit'];
         $instance[$prefix . 'offset'] = $new_instance[$prefix . 'offset'];
@@ -33,7 +34,36 @@ class Wp_Advanced_Blog_Widget extends WP_Widget
 
     {
         $prefix = 'wp-ab-';
+        $authors = get_users([
+            'orderby' => 'name',
+            'order' => 'ASC',
+            'number' => '',
+        ]);
+
         $arr = [
+            'author__in' => [
+                'id' => $this->get_field_id($prefix . 'author__in'),
+                'name' => $this->get_field_name($prefix . 'author__in'),
+                'instance' => $instance[$prefix . 'author__in'],
+                'list' => $authors,
+                'label' => 'Author include',
+                'description' => 'Select the authors you want to include in this feed.',
+            ],
+            'author__not_in' => [
+                'id' => $this->get_field_id($prefix . 'author__not_in'),
+                'name' => $this->get_field_name($prefix . 'author__not_in'),
+                'instance' => $instance[$prefix . 'author__not_in'],
+                'list' => $authors,
+                'label' => 'Author exclude',
+                'description' => 'Select the authors you want to exclude in this feed.',
+            ],
+            'cache_results' => [
+                'id' => $this->get_field_id($prefix . 'cache_results'),
+                'name' => $this->get_field_name($prefix . 'cache_results'),
+                'instance' => $instance[$prefix . 'cache_results'],
+                'label' => 'Cache results',
+                'description' => 'Whether to cache post information. (default = true)',
+            ],
             'title' => [
                 'id' => $this->get_field_id($prefix . 'title'),
                 'name' => $this->get_field_name($prefix . 'title'),
@@ -118,11 +148,45 @@ class Wp_Advanced_Blog_Widget extends WP_Widget
         $wpeditor = [
             'textarea_name' => $arr['post_structure']['name']
         ];
-        echo "<pre>";
-//        var_dump($arr['post_structure']['instance']);
-        echo "</pre>";
+
+
         ?>
         <div>
+            <p>
+                <label for="<?= $arr['author__in']['id'] ?>">
+                    <?= $arr['author__in']['label'] ?> <br/>
+                    <small><?= $arr['author__in']['description'] ?></small>
+                </label>
+                <select class="widefat" name="<?= $arr['author__in']['name'] ?>" id="<?= $arr['author__in']['id'] ?>" multiple>
+                    <?php foreach ($arr['author__in']['list'] as $author) {
+                        $selected = (in_array($author->id, $arr['author__in']['instance'])) ? 'selected' : '';
+                        echo "<option value='{$author->id}' {$selected}>{$author->data->display_name}</option>";
+                    } ?>
+                </select>
+            </p>
+            <p>
+                <label for="<?= $arr['author__not_in']['id'] ?>">
+                    <?= $arr['author__not_in']['label'] ?> <br/>
+                    <small><?= $arr['author__not_in']['description'] ?></small>
+                </label>
+                <select class="widefat" name="<?= $arr['author__not_in']['name'] ?>" id="<?= $arr['author__not_in']['id'] ?>" multiple>
+                    <?php foreach ($arr['author__not_in']['list'] as $author) {
+                        $selected = (in_array($author->id, $arr['author__not_in']['instance'])) ? 'selected' : '';
+                        echo "<option value='{$author->id}' {$selected}>{$author->data->display_name}</option>";
+                    } ?>
+                </select>
+            </p>
+            <p>
+                <input type="checkbox" class="checkbox"
+                       id="<?= $arr['cache_results']['id'] ?>"
+                       name="<?= $arr['cache_results']['name'] ?>"
+                    <?= ($arr['cache_results']['instance'] == 'on' || empty($arr['cache_results']['instance'])) ? 'checked' : '' ?>>
+                <label for="<?= $arr['cache_results']['id'] ?>">
+                    <?= $arr['cache_results']['label'] ?> <br/>
+                    <small><?= $arr['cache_results']['description'] ?></small>
+                </label>
+            </p>
+
             <p>
                 <label for="<?= $arr['title']['id'] ?>">Title</label>
                 <input class="widefat" id="<?= $arr['title']['id'] ?>" name="<?= $arr['title']['name'] ?>" type="text" value="<?= esc_attr($arr['title']['instance']) ?>"/>
@@ -194,6 +258,7 @@ class Wp_Advanced_Blog_Widget extends WP_Widget
             </p>
         </div>
         <?php
+
     }
 
     /**
@@ -202,6 +267,8 @@ class Wp_Advanced_Blog_Widget extends WP_Widget
      */
     public function widget($args, $instance)
     {
+        global $post;
+
         /**
          * urls:
          * https://codex.wordpress.org/Class_Reference/WP_Query#Parameters
@@ -210,9 +277,73 @@ class Wp_Advanced_Blog_Widget extends WP_Widget
          */
         $prefix = 'wp-ab-';
         $content = str_replace("wp-ab-postid", "wp-ab-postid=1", $instance['wp-ab-post_structure']);
+        echo "<pre>";
+        var_dump($instance);
+        echo "</pre>";
+        $arr = [
+            'title' => [
+                'id' => $this->get_field_id($prefix . 'title'),
+                'name' => $this->get_field_name($prefix . 'title'),
+                'instance' => $instance[$prefix . 'title'],
+            ],
+            'category' => [
+                'id' => $this->get_field_id($prefix . 'category'),
+                'name' => $this->get_field_name($prefix . 'category[]'),
+                'instance' => $instance[$prefix . 'category'],
+            ],
+            'tag' => [
+                'id' => $this->get_field_id($prefix . 'tag'),
+                'name' => $this->get_field_name($prefix . 'tag[]'),
+                'instance' => $instance[$prefix . 'tag'],
+            ],
+            'limit' => [
+                'id' => $this->get_field_id($prefix . 'limit'),
+                'name' => $this->get_field_name($prefix . 'limit'),
+                'instance' => $instance[$prefix . 'limit'],
+            ],
+            'offset' => [
+                'id' => $this->get_field_id($prefix . 'offset'),
+                'name' => $this->get_field_name($prefix . 'offset'),
+                'instance' => $instance[$prefix . 'offset'],
+            ],
+            'order_by' => [
+                'id' => $this->get_field_id($prefix . 'order_by'),
+                'name' => $this->get_field_name($prefix . 'order_by'),
+                'instance' => $instance[$prefix . 'order_by'],
+            ],
+            'order' => [
+                'id' => $this->get_field_id($prefix . 'order'),
+                'name' => $this->get_field_name($prefix . 'order'),
+                'instance' => $instance[$prefix . 'order'],
+            ],
+            'include' => [
+                'id' => $this->get_field_id($prefix . 'include'),
+                'name' => $this->get_field_name($prefix . 'include'),
+                'instance' => $instance[$prefix . 'include'],
+                'description' => 'An array of post IDs to retrieve, sticky posts will be included.',
+            ],
+            'exclude' => [
+                'id' => $this->get_field_id($prefix . 'exclude'),
+                'name' => $this->get_field_name($prefix . 'exclude'),
+                'instance' => $instance[$prefix . 'exclude'],
+                'description' => 'An array of post IDs not to retrieve.',
+            ],
+            'post_structure' => [
+                'id' => $this->get_field_id($prefix . 'post_structure'),
+                'name' => $this->get_field_name($prefix . 'post_structure'),
+                'instance' => $instance[$prefix . 'post_structure'],
+            ],
+            'pagination' => [
+                'id' => $this->get_field_id($prefix . 'pagination'),
+                'name' => $this->get_field_name($prefix . 'pagination'),
+                'instance' => $instance[$prefix . 'pagination'],
+            ],
+        ];
 
-        $args = [
-            'posts_per_page' => 5
+        $postParameters = [
+            'author_in' => $instance[$prefix . 'author__in'],
+            'author_not_in' => $instance[$prefix . 'author_not_in'],
+            'cache_results' => $instance[$prefix . 'cache_results'],
         ];
 
 
@@ -238,9 +369,8 @@ class Wp_Advanced_Blog_Widget extends WP_Widget
 //        );
 //        $posts_array = get_posts( $args );
 //        $query = new WP_Query($args);
-        global $post;
 
-        $myposts = get_posts($args);
+        $myposts = get_posts($postParameters);
 
         $html = $args['before_widget'];
 
