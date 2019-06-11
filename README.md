@@ -4,7 +4,7 @@ WP Advanced Blog is a wordpress plugin that aims to give webdevelopers more free
 
 ## Roadmap
 
-The roadmap will be updated when new suggestions **being worked on**. If your suggestion is not on the list than it doesn't mean that I forgot about it, it simply means that I'm currently working on another item in the list. (Checked items will stay there for at least 1 week)
+The roadmap will be updated when new suggestions are **being worked on**. If your suggestion is not on the list than it doesn't mean that I forgot about it, it simply means that I'm currently working on another item in the list. (Checked items will stay there for at least 1 week)
 
 - [ ] Query all posts using all the filters
 - [ ] attachment_id
