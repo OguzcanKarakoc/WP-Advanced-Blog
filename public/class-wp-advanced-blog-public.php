@@ -113,6 +113,8 @@ class Wp_Advanced_Blog_Public
     {
 //        add_shortcode('Wp_Advanced_Blog_Widget');
         add_shortcode('title', 'foobar_func');
+        add_shortcode('excerpt', 'excerpt');
+        add_shortcode('permalink', 'permalink');
 //        add_shortcode('')
     }
 

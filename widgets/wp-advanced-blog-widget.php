@@ -186,20 +186,45 @@ class Wp_Advanced_Blog_Widget extends WP_Widget
                     <small><?= $arr['cache_results']['description'] ?></small>
                 </label>
             </p>
+            <?php
+            $args2 = array(
+                'show_option_all' => '',
+                'container' => false,
+                'orderby' => 'name',
+                'order' => 'ASC',
+                'hide_empty' => 0,
+                'use_desc_for_title' => 0,
+                'child_of' => 0,
+                'hierarchical' => 1,
+                'number' => null,
+                'echo' => 1,
+                'depth' => -1,
+                'taxonomy' => 'category'
 
+            );
+            $categories = get_categories($args2);
+            // Recursive method get categories.
+            $test = $this->selectInputHierarchical($categories);
+            echo "<pre>";
+            var_dump($test);
+            echo "</pre>";
+            ?>
+            <p>
+                <label for="<?= $arr['category']['id'] ?>">Filter categories</label>
+                <select class="widefat" name="<?= $arr['category']['name'] ?>" id="<?= $arr['category']['id'] ?>" multiple>
+                    <?= $this->selectInputHierarchical($categories) ?>
+                    <!--                    --><?php //foreach (get_categories(['hide_empty' => 0]) as $category) {
+                    //                        $selected = (in_array($category->cat_ID, $arr['category']['instance'])) ? 'selected' : '';
+                    //                        echo "<option value='{$category->cat_ID}' {$selected}>{$category->cat_name}</option>";
+                    //                    }
+                    ?>
+                </select>
+            </p>
             <p>
                 <label for="<?= $arr['title']['id'] ?>">Title</label>
                 <input class="widefat" id="<?= $arr['title']['id'] ?>" name="<?= $arr['title']['name'] ?>" type="text" value="<?= esc_attr($arr['title']['instance']) ?>"/>
             </p>
-            <p>
-                <label for="<?= $arr['category']['id'] ?>">Filter categories</label>
-                <select class="widefat" name="<?= $arr['category']['name'] ?>" id="<?= $arr['category']['id'] ?>" multiple>
-                    <?php foreach (get_categories(['hide_empty' => 0]) as $category) {
-                        $selected = (in_array($category->cat_ID, $arr['category']['instance'])) ? 'selected' : '';
-                        echo "<option value='{$category->cat_ID}' {$selected}>{$category->cat_name}</option>";
-                    } ?>
-                </select>
-            </p>
+
             <p>
                 <label for="<?= $arr['tag']['id'] ?>">Filter tags</label>
                 <select class="widefat" name="<?= $arr['tag']['name'] ?>" id="<?= $arr['tag']['id'] ?>" multiple>
@@ -276,10 +301,11 @@ class Wp_Advanced_Blog_Widget extends WP_Widget
          * https://codex.wordpress.org/Plugin_API/Action_Reference/pre_get_posts
          */
         $prefix = 'wp-ab-';
-        $content = str_replace("wp-ab-postid", "wp-ab-postid=1", $instance['wp-ab-post_structure']);
-        echo "<pre>";
-        var_dump($instance);
-        echo "</pre>";
+//        $content = str_replace("wp-ab-postid", "wp-ab-postid=1", $instance['wp-ab-post_structure']);
+        $postStructure = $instance['wp-ab-post_structure'];
+//        echo "<pre>";
+//        var_dump($instance);
+//        echo "</pre>";
         $arr = [
             'title' => [
                 'id' => $this->get_field_id($prefix . 'title'),
@@ -374,30 +400,82 @@ class Wp_Advanced_Blog_Widget extends WP_Widget
 
         $html = $args['before_widget'];
 
-        ?>
-        <ul>
-            <?php
-            foreach ($myposts as $post) : setup_postdata($post);
-                echo "<pre>";
-                var_dump($post);
-                echo "</pre>"; ?>
-                <li>
-                    <a href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
-                </li>
-            <?php endforeach; ?>
-        </ul>
-        <?php
-        wp_reset_postdata();
-
-
         $regex = get_shortcode_regex();
 //        preg_match_all('/\[title(.*?)?\](?:(.+?)?\[\/title\])?/', $content, $matches);
-        preg_match_all('/' . $regex . '/s', $content, $matches);
+        preg_match_all('/' . $regex . '/s', $postStructure, $matches);
         echo "<pre>";
-        var_dump($regex, $matches[0]);
+        var_dump($matches);
         echo "</pre>";
+
+        $html .= '<div>';
+        foreach ($myposts as $post) : setup_postdata($post);
+            // Reset post structure
+            $postStructure = $instance['wp-ab-post_structure'];
+            // Fill in the post structure
+            for ($i = 0; $i < count($matches[0]); $i++) {
+                // "[title ... ]" -> "[title id=1 ... ]"
+                $match = str_replace('[' . $matches[2][$i], '[' . $matches[2][$i] . ' id=' . get_the_ID(), $matches[0][$i]);
+                $postStructure = str_replace($matches[0][$i], do_shortcode($match), $postStructure);
+            }
+
+            $html .= $postStructure;
+            $html .= '<hr />';
+        endforeach;
+        $html .= '</div>';
+
+        wp_reset_postdata();
 
         $html .= $args['after_widget'];
         echo $html;
     }
+
+    // region: Custom methods
+    /*
+     * [
+     * id: [name, children: []
+     * id: [name, children: []
+     * id: [name, children: []
+     * ]
+     */
+    private function selectInputHierarchical($categories, $dept = 0)
+    {
+//        $cat_arr = [];
+        $html = '';
+        $deptHtml = '';
+        for ($i = $dept; $i >= 0; $i--) {
+            $deptHtml .= '&nbsp;';
+        }
+        foreach ($categories as $key => $category) {
+            if ($category->category_parent == 0) {
+
+                $html .= "<option value='{$category->catID}'>{$deptHtml}{$category->name}</option>";
+                $html .= $this->childrenCategory($categories, $category->cat_ID, $dept);
+//                $cat_arr[$category->cat_ID]['name'] = $category->name;
+//                $cat_arr[$category->cat_ID]['children'] = $this->childrenCategory($categories, $category->cat_ID);
+                unset($categories[$key]);
+            }
+        }
+        return $html;
+    }
+
+    private function childrenCategory($categories, $parentId, $dept)
+    {
+        $html = '';
+        $deptHtml = '';
+        for ($i = $dept + 1; $i >= 0; $i--) {
+            $deptHtml .= '&nbsp;';
+        }
+//        $children = [];
+        foreach ($categories as $key => $category) {
+            if ($category->category_parent == $parentId) {
+                $html .= "<option value='{$category->catID}'>{$deptHtml}{$category->name}</option>";
+                $html .= $this->childrenCategory($categories, $category->cat_ID, $dept + 1);
+//                $children[$category->cat_ID]['name'] = $category->name;
+//                $children[$category->cat_ID]['children'] = $this->childrenCategory($categories, $category->cat_ID, $dept + 1);
+                unset($categories[$key]);
+            }
+        }
+        return $html;
+    }
+    // endregion
 }
