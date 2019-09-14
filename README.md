@@ -6,28 +6,21 @@ WP Advanced Blog is a wordpress plugin that aims to give webdevelopers more free
 
 The roadmap will be updated when new suggestions are **being worked on**. If your suggestion is not on the list than it doesn't mean that I forgot about it, it simply means that I'm currently working on another item in the list. (Checked items will stay there for at least 1 week)
 
+
 - [ ] Query all posts using all the filters
-- [ ] attachment_id
-- [ ] author
-- [ ] author_name
 - [x] author__in
 - [x] author__not_in
 - [x] cache_results
-- [ ] cat
-- [ ] category__and
-- [ ] category__in
-- [ ] category__not_in
-- [ ] category_name
-- [ ] comment_count
-- [ ] comment_status
-- [ ] comments_per_page
+- [x] cat
+- [x] category__and
+- [x] category__in
+- [x] category__not_in
+- [x] comment_count
 - [ ] date_query
-- [ ] day
-- [ ] exact
-- [ ] fields
-- [ ] hour
+    - [ ] BETWEEN 2 dates
+    - [ ] '=', '!=', '>', '>=', '<', '<=', 'IN', 'NOT IN', 'BETWEEN', 'NOT BETWEEN'
+    - [ ] For all 
 - [ ] ignore_sticky_posts
-- [ ] m
 - [ ] meta_compare
 - [ ] meta_compare_key
 - [ ] meta_key
@@ -35,17 +28,11 @@ The roadmap will be updated when new suggestions are **being worked on**. If you
 - [ ] meta_value
 - [ ] meta_value_num
 - [ ] menu_order
-- [ ] monthnum
 - [ ] name
 - [ ] nopaging
 - [ ] no_found_rows
 - [ ] offset
 - [ ] order
-- [ ] p
-- [ ] page
-- [ ] paged
-- [ ] page_id
-- [ ] pagename
 - [ ] perm
 - [ ] ping_status
 - [ ] post__in
@@ -77,6 +64,26 @@ The roadmap will be updated when new suggestions are **being worked on**. If you
 - [ ] update_post_term_cache
 - [ ] w
 - [ ] year
+
+## Filters that need further research
+
+- [ ] attachment_id
+- [ ] comment_status
+- [ ] comments_per_page
+
+## Filters that seem redundant
+
+- [ ] day
+- [ ] exact
+- [ ] fields
+- [ ] hour
+- [ ] m
+- [ ] monthnum
+- [ ] p
+- [ ] page
+- [ ] paged
+- [ ] page_id
+- [ ] pagename
 
 ## Installation
 

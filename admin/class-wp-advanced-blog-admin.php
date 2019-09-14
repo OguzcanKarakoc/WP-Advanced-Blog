@@ -115,7 +115,7 @@ class Wp_Advanced_Blog_Admin
          * class.
          */
 
-        wp_enqueue_script($this->plugin_name, plugin_dir_url(__FILE__) . 'js/wp-advanced-blog-admin.js', [$this->plugin_name . 'login-module', 'jquery', 'wp-color-picker'], $this->version, true);
+        wp_enqueue_script($this->plugin_name, plugin_dir_url(__FILE__) . 'js/wp-advanced-blog-admin.js', ['jquery'], $this->version, true);
     }
 
     /**
