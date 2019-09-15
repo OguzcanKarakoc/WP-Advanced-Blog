@@ -32,7 +32,7 @@ class Wp_Advanced_Blog_Widget extends WP_Widget {
 			'compare' => $new_instance[ $prefix . 'compare' ]
 		];
 
-		$instance[ $prefix . 'date_query' ] = esc_sql($new_instance[ $prefix . 'date_query' ]);
+		$instance[ $prefix . 'date_query' ] = esc_sql( $new_instance[ $prefix . 'date_query' ] );
 
 		$instance[ $prefix . 'author_inc' ]     = $new_instance[ $prefix . 'author' ];
 		$instance[ $prefix . 'tag' ]            = $new_instance[ $prefix . 'tag' ];
@@ -294,72 +294,33 @@ class Wp_Advanced_Blog_Widget extends WP_Widget {
                 <legend hidden>Date filters</legend>
                 <details>
                     <summary>Date filters</summary>
-                    <div>
+                    <div class="root">
 						<?php
-//						echo "<pre>";
-//						var_dump( $instance );
-//						echo "</pre>";
+						$index_outer = '';
+						foreach ( $instance[ $prefix . 'date_query' ] as $index => $date_query ) {
+							if ( $index == 'relation' ) {
+								continue;
+							}
+
+							$field_list = $this->getFieldList( $date_query['compare'] );
+							?>
+                            <div>
+								<?php
+								foreach ( $field_list['fieldTypes'] as $field ) {
+									$this->generateField( $field, $date_query, $index, $field_list['multi'] );
+								}
+								$index_outer = $index;
+								?>
+                                <span id="delete-link">
+                                    <a class="delete wp-advanced-feed">Remove filter</a>
+                                </span>
+                                <hr/>
+                            </div>
+							<?php
+						}
 						?>
-                        <p>
-                            <b>Compare option: <=</b>
-                            <input type="hidden" name="<?= $this->get_field_name( $prefix . 'date_query[0][compare]' ) ?>" value="<=">
-                        </p>
-                        <p>
-                            <label for="<?= $this->get_field_id( $prefix . 'month' ) ?>">Month</label>
-                            <select class="widefat" name="<?= $this->get_field_name( $prefix . 'date_query[0][month]' ) ?>" id="<?= $this->get_field_id( $prefix . 'month' ) ?>">
-								<?php
-								for ( $m = 1; $m <= 12; $m ++ ) {
-									$month_label = date( 'F', mktime( 0, 0, 0, $m, 1 ) );
-									echo "<option value='{$m}'>{$month_label}</option>";
-								} ?>
-                            </select>
-                        </p>
-                        <p>
-                            <label for="<?= $this->get_field_id( $prefix . 'day' ) ?>">Day</label>
-                            <select class="widefat" name="<?= $this->get_field_name( $prefix . 'date_query[0][day]' ) ?>" id="<?= $this->get_field_id( $prefix . 'day' ) ?>">
-								<?php
-								for ( $d = 1; $d <= 31; $d ++ ) {
-									echo "<option value='{$d}'>{$d}</option>";
-								} ?>
-                            </select>
-                        </p>
-                        <p>
-                            <label for="<?= $this->get_field_id( $prefix . 'date_query[0][year]' ) ?>">Year</label>
-                            <select class="widefat" name="<?= $this->get_field_name( $prefix . 'year' ) ?>" id="<?= $this->get_field_id( $prefix . 'year' ) ?>">
-								<?php
-								$year = date( 'Y' );
-								$min  = $year - 60;
-								$max  = $year;
-								for ( $y = $max; $y >= $min; $y -- ) {
-									echo "<option value='{$y}'>{$y}</option>";
-								} ?>
-                            </select>
-                        </p>
 
-                        <p>
-                            <label for="<?= $this->get_field_id( $prefix . 'dayofweek' ) ?>">Days of week</label>
-                            <select class="widefat" name="<?= $this->get_field_name( $prefix . 'date_query[0][dayofweek][]' ) ?>" id="<?= $this->get_field_id( $prefix . 'dayofweek' ) ?>" multiple>
-								<?php
-								for ( $i = 0; $i < 7; $i ++ ) {
-									$day = jddayofweek( $i, 1 );
-									echo "<option value='{$i}'>{$day}</option>";
-								} ?>
-                            </select>
-                        </p>
 
-                        <p>
-                            <label for="<?= $this->get_field_id( $prefix . 'dayofyear' ) ?>">Days of year</label>
-                            <select class="widefat" name="<?= $this->get_field_name( $prefix . 'date_query[0][dayofyear][]' ) ?>" id="<?= $this->get_field_id( $prefix . 'dayofyear' ) ?>" multiple>
-								<?php
-								for ( $i = 0; $i < 366; $i ++ ) {
-									echo "<option value='{$i}'>{$i}</option>";
-								} ?>
-                            </select>
-                        </p>
-                        <span id="delete-link">
-                            <a class="delete" href>Remove filter</a>
-                        </span>
-                        <hr/>
                     </div>
 
                     <div>
@@ -372,8 +333,18 @@ class Wp_Advanced_Blog_Widget extends WP_Widget {
 									echo "<option value='{$compare}'>{$compare}</option>";
 								} ?>
                             </select>
+                            <label for="<?= $this->get_field_id( $prefix . "date_query[relation]" ) ?>">Relation</label>
+                            <select class="widefat" name="<?= $this->get_field_name( $prefix . "date_query[relation]" ) ?>"
+                                    id="<?= $this->get_field_id( $prefix . "date_query[relation]" ) ?>">
+								<?php
+								$selected = ( 'or' == $instance[ $prefix . 'date_query' ]['relation'] ) ? 'selected' : '';
+								?>
+                                <option value="and">AND</option>
+                                <option value="or" <?= $selected ?>>OR</option>
+                            </select>
                         </p>
-                        <input type="hidden" value="<?= $this->get_field_name( $prefix . 'date_query[0]' ) ?>">
+						<?php $index_outer ++ ?>
+                        <input type="hidden" value="<?= $this->get_field_name( $prefix . "date_query[{$index_outer }]" ) ?>">
                         <button type='button' class="button-secondary widefat add-date-filter"><span class="dashicons dashicons-plus-alt" style="vertical-align: text-top;"></span> Add date filter</button>
                     </div>
                 </details>
@@ -525,6 +496,42 @@ class Wp_Advanced_Blog_Widget extends WP_Widget {
 //            ],
 //        ];
 
+		echo "<pre>";
+		var_dump( $instance[ $prefix . 'date_query' ] );
+		echo "</pre>";
+
+		// Structure the date
+		foreach ( $instance[ $prefix . 'date_query' ] as $index => $date_query ) {
+			if ( is_array( $date_query ) and array_key_exists( 'before', $date_query ) and array_key_exists( 'after', $date_query ) ) {
+				$date_before = strtotime( $date_query['before']['date'] . ' ' . $date_query['before']['time'] );
+				$date_after  = strtotime( $date_query['after']['date'] . ' ' . $date_query['after']['time'] );
+
+				$instance[ $prefix . 'date_query' ][ $index ]['before'] = [
+					'year'  => date( 'Y', $date_before ),
+					'month' => date( 'm', $date_before ),
+					'day'   => date( 'd', $date_before ),
+				];
+
+				$instance[ $prefix . 'date_query' ][ $index ]['after'] = [
+					'year'  => date( 'Y', $date_after ),
+					'month' => date( 'm', $date_after ),
+					'day'   => date( 'd', $date_after ),
+				];
+			} else {
+				// Remove all empty values
+				if ( is_array( $date_query ) ) {
+					foreach ( $date_query as $key => $item ) {
+						if ( empty( $item ) ) {
+							unset( $instance[ $prefix . 'date_query' ][ $index ][ $key ] );
+						}
+					}
+				}
+			}
+		}
+		echo "<pre>";
+		var_dump( $instance[ $prefix . 'date_query' ] );
+		echo "</pre>";
+
 		$postParameters = [
 //            'author__in' => $instance[$prefix . 'author__in'],
 //            'author__not_in' => $instance[$prefix . 'author__not_in'],
@@ -537,29 +544,7 @@ class Wp_Advanced_Blog_Widget extends WP_Widget {
 //            TODO:: in the future I can add comments to the feed
 //            'comments_per_page' => 1
 //            'comment_statuses' => 'open'
-			'date_query' => [
-				[
-//                        'post_date_gmt' ,'post_modified_gmt', 'comment_date_gmt'. Default 'post_date'.
-					'column'  => 'post_date',
-//                     '=', '!=', '>', '>=', '<', '<=', 'IN', 'NOT IN', 'BETWEEN', 'NOT BETWEEN'. Default '='.
-					'compare' => '=',
-//                    'OR' or 'AND'. Default 'OR'.
-//					'relation' => 'AND',
-					[
-						'before' => [
-							'year' => date( 'Y' ),
-							'week' => date( 'W' ),
-							'day'  => '1',
-						],
-						'after'  => [
-							'year' => date( 'Y' ),
-							'week' => date( 'W' ),
-							'day'  => '1',
-						]
-					],
-
-				]
-			]
+			'date_query' => $instance[ $prefix . 'date_query' ]
 		];
 
 //compare = '=', '!=', '>', '>=','<', '<=', 'IN', 'NOT IN', 'BETWEEN', 'NOT BETWEEN'.
@@ -673,6 +658,127 @@ class Wp_Advanced_Blog_Widget extends WP_Widget {
 		}
 
 		return $html;
+	}
+
+	/**
+	 * @param $compare
+	 *
+	 * @return array
+	 */
+	private function getFieldList( $compare ) {
+		switch ( $compare ) {
+			case '=':
+			case '!=':
+			case '>':
+			case '>=':
+			case  '<':
+			case '<=':
+				return [
+					'multi'      => false,
+					'fieldTypes' => [ 'compare', 'day', 'month', 'year', 'dayofweek', 'dayofyear' ]
+				];
+			case 'IN':
+			case 'NOT IN':
+				return [
+					'multi'      => true,
+					'fieldTypes' => [ 'compare', 'day', 'month', 'year', 'dayofweek', 'dayofyear' ]
+				];
+			case 'BETWEEN':
+			case 'NOT BETWEEN':
+				return [
+					'multi'      => false,
+					'fieldTypes' => [ 'compare', 'before', 'after' ]
+				];
+			default:
+				return [
+					'multi'      => false,
+					'fieldTypes' => []
+				];
+		}
+	}
+
+	private function generateField( $field, $date_query, $index, $multi ) {
+		$prefix   = $this->prefix;
+		$multiple = $multi ? 'multiple' : '';
+		echo "<p>";
+		switch ( $field ) {
+			case 'compare': ?>
+                <b>Compare option: <?= $date_query['compare'] ?></b>
+                <input type="hidden" name="<?= $this->get_field_name( $prefix . "date_query[{$index}][compare]" ) ?>" value="<?= $date_query['compare'] ?>">
+				<?php break;
+			case 'day': ?>
+                <label for="<?= $this->get_field_id( $prefix . "date_query[{$index}][day]" ) ?>">Day</label>
+                <select class="widefat" name="<?= $this->get_field_name( $prefix . "date_query[{$index}][day]" ) ?>"
+                        id="<?= $this->get_field_id( $prefix . "date_query[{$index}][day]" ) ?>" <?= $multiple ?>>
+					<?php
+					echo "<option value=''>---</option>";
+					for ( $d = 1; $d <= 31; $d ++ ) {
+						$selected = ( ! empty( $date_query['day'] ) and ( $date_query['day'] == $d or in_array( $d, $date_query['day'] ) ) ) ? 'selected' : '';
+						echo "<option value='{$d}' {$selected}>{$d}</option>";
+					} ?>
+                </select>
+				<?php break;
+			case 'month': ?>
+                <label for="<?= $this->get_field_id( $prefix . "date_query[{$index}][month]" ) ?>">Month</label>
+                <select class="widefat" name="<?= $this->get_field_name( $prefix . "date_query[{$index}][month]" ) ?>"
+                        id="<?= $this->get_field_id( $prefix . "date_query[{$index}][month]" ) ?>" <?= $multiple ?>>
+					<?php
+					echo "<option value=''>---</option>";
+					for ( $m = 1; $m <= 12; $m ++ ) {
+						$selected    = ( ! empty( $date_query['month'] ) and ( $date_query['month'] == $m or in_array( $m, $date_query['month'] ) ) ) ? 'selected' : '';
+						$month_label = date( 'F', mktime( 0, 0, 0, $m, 1 ) );
+						echo "<option value='{$m}' {$selected}>{$month_label}</option>";
+					} ?>
+                </select>
+				<?php break;
+			case 'year': ?>
+                <label for="<?= $this->get_field_id( $prefix . "date_query[{$index}][year]" ) ?>">Year</label>
+                <select class="widefat" name="<?= $this->get_field_name( $prefix . "date_query[{$index}][year]" ) ?>"
+                        id="<?= $this->get_field_id( $prefix . "date_query[{$index}][year]" ) ?>" <?= $multiple ?>>
+					<?php
+					$year = date( 'Y' );
+					$min  = $year - 60;
+					$max  = $year;
+					echo "<option value=''>---</option>";
+					for ( $y = $max; $y >= $min; $y -- ) {
+						$selected = ( ! empty( $date_query['year'] ) and ( $date_query['year'] == $y or in_array( $y, $date_query['year'] ) ) ) ? 'selected' : '';
+						echo "<option value='{$y}' {$selected}>{$y}</option>";
+					} ?>
+                </select>
+				<?php break;
+			case 'dayofweek': ?>
+                <label for="<?= $this->get_field_id( $prefix . "date_query[{$index}][dayofweek]" ) ?>">Days of week</label>
+                <select class="widefat" name="<?= $this->get_field_name( $prefix . "date_query[{$index}][dayofweek]" ) ?>"
+                        id="<?= $this->get_field_id( $prefix . "date_query[{$index}][dayofweek]" ) ?>" <?= $multiple ?>>
+					<?php
+					echo "<option value=''>---</option>";
+					for ( $i = 0; $i < 7; $i ++ ) {
+						$selected = ( ! empty( $date_query['dayofweek'] ) and ( $date_query['dayofweek'] == $i or in_array( $i, $date_query['dayofweek'] ) ) ) ? 'selected' : '';
+						$day      = jddayofweek( $i, 1 );
+						echo "<option value='{$i}' {$selected}>{$day}</option>";
+					} ?>
+                </select>
+				<?php break;
+			case 'dayofyear': ?>
+                <label for="<?= $this->get_field_id( $prefix . "date_query[{$index}][dayofyear]" ) ?>">Days of year</label>
+                <select class="widefat" name="<?= $this->get_field_name( $prefix . "date_query[{$index}][dayofyear]" ) ?>"
+                        id="<?= $this->get_field_id( $prefix . "date_query[{$index}][dayofyear]" ) ?>" <?= $multiple ?>>
+					<?php
+					echo "<option value=''>---</option>";
+					for ( $i = 0; $i < 366; $i ++ ) {
+						$selected = ( ! empty( $date_query['dayofyear'] ) and ( $date_query['dayofyear'] == $i or in_array( $i, $date_query['dayofyear'] ) ) ) ? 'selected' : '';
+						echo "<option value='{$i}' {$selected}>{$i}</option>";
+					} ?>
+                </select>
+				<?php break;
+			case 'before':
+			case 'after': ?>
+                <label for="<?= $this->get_field_id( $prefix . "date_query[{$index}][{$field}]" ) ?>"><?= $field ?></label>
+                <input class="widefat" type="date" value="<?= $date_query["{$field}"]['date'] ?>" name="<?= $this->get_field_name( $prefix . "date_query[{$index}][{$field}][date]" ) ?>">
+                <input class="widefat" type="time" value="<?= $date_query["{$field}"]['time'] ?>" name="<?= $this->get_field_name( $prefix . "date_query[{$index}][{$field}][time]" ) ?>">
+				<?php break;
+		}
+		echo "</p>";
 	}
 	// endregion
 }
