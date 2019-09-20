@@ -28,7 +28,9 @@
      * Although scripts in the WordPress core, Plugins and Themes may be
      * practising this, we should strive to set a better example in our own work.
      */
-    console.log('LOOL');
+    console.log('Loaded');
+
+    const body = $('body')
 
     function getMonthName(v) {
         const n = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -44,34 +46,84 @@
      * Get field list based on the compare functionality
      *
      * @param compare
+     * @param type string
+     * @param source_type
      * @return {{fieldTypes: string[], multi: boolean}}
      */
-    function getFieldList(compare) {
+    function getFieldList(compare, type = 'date_query', source_type = '') {
         switch (compare) {
             case '=':
             case '!=':
             case '>':
             case '>=':
-            case  '<':
+            case '<':
             case '<=':
-                return {multi: false, fieldTypes: ['compare', 'day', 'month', 'year', 'dayofweek', 'dayofyear']};
+                if (type === 'date_query') {
+                    return {multi: false, fieldTypes: ['compare', 'day', 'month', 'year', 'dayofweek', 'dayofyear']};
+                }
+                break;
             case 'IN':
             case 'NOT IN':
-                return {multi: true, fieldTypes: ['compare', 'day', 'month', 'year', 'dayofweek', 'dayofyear']};
+
+                if (type === 'date_query') {
+                    return {multi: true, fieldTypes: ['compare', 'day', 'month', 'year', 'dayofweek', 'dayofyear']};
+                } else if (type === 'meta_query') {
+                    // input_type = date | numeric | string
+                    /**
+                     * example:
+                     * array(
+                     *      'key'     => 'color',
+                     *      'value'   => array('red', 'green', 'blue')
+                     *      'compare' => 'IN'
+                     * )
+                     *
+                     * and it would get all posts that have the color set to either red, green, or blue. Using 'NOT IN' gets the reverse,
+                     * any posts that have a value set to anything else than what's in the array.
+                     *
+                     * meta_(not)_in = text input, all values have to be comma separated
+                     *
+                     * TODO show when typing in the field how the array currently looks.
+                     */
+                    return {multi: false, fieldTypes: ['meta_(not)_in']}
+                }
+                break;
             case 'BETWEEN':
-            case  'NOT BETWEEN':
-                return {multi: false, fieldTypes: ['compare', 'before', 'after']};
+            case 'NOT BETWEEN':
+                if (type === 'date_query') {
+                    return {multi: false, fieldTypes: ['compare', 'before', 'after']};
+                } else if (type === 'meta_query') {
+                    // TODO :: support DATE and NUMERIC
+                    return {multi: false, fieldTypes: [source_type, source_type]};
+                }
+                break;
+            case 'EXISTS':
+            case 'NOT EXISTS':
+            case 'LIKE':
+            case 'NOT LIKE':
+                // simple text field
+                return {multi: false, fieldTypes: ['text']};
         }
     }
 
+
     $('div.root').on('click', 'a.wp-advanced-feed', function (event) {
+        /**
+         * remove filter
+         * @type {*|jQuery|HTMLElement}
+         */
         let $this = $(this);
         $this.parent().parent().remove()
     });
 
-    $('body').on('click', 'button.add-date-filter', function (event) {
+
+    body.on('click', 'button.add-date-filter', function (event) {
+        /**
+         * Add extra date filter
+         * @type {*|jQuery|HTMLElement}
+         */
         let $this = $(this);
-        let compare = $this.parent().find('select').find(':selected').val();
+        // Get the compare value
+        let compare = $this.parent().find('select[name=compare]').find(':selected').val();
         // Get default field name
         let field = $this.parent().find('input[type=hidden]');
         let fieldName = field.val();
@@ -80,9 +132,9 @@
         // Root element
         let root = $('<div />');
         // get list of input fields for each different compare option
-        let fielList = getFieldList(compare);
-        for (let fieldType of fielList.fieldTypes) {
-            root = generateField(root, fielList.multi, fieldType, fieldName, compare)
+        let fieldList = getFieldList(compare, 'date_query');
+        for (let fieldType of fieldList.fieldTypes) {
+            root = generateField(root, fieldList.multi, fieldType, fieldName, compare)
         }
         root.append($('<span id="delete-link" />', {
             'id': 'delete-link'
@@ -99,25 +151,82 @@
         console.log({this: $this, compare: compare, match, fieldName: fieldName, number: parseInt(match[1]) + 1})
     });
 
-    function generateField(root, multi, fieldType, fieldName, compare = null) {
+
+    body.on('click', 'button.add-meta-filter', function (event) {
+        /**
+         * Add extra meta filter
+         * @type {*|jQuery|HTMLElement}
+         */
+        let $this = $(this);
+        // Get the compare value
+        let compare = $this.parent().find('select[name=compare]').find(':selected').val();
+        // Get default field name
+        let field = $this.parent().find('input[type=hidden]');
+        let fieldName = field.val();
+        let page = $this.parent().parent().find('div.root');
+
+        // Root element
+        let root = $('<div />');
+        // get list of input fields for each different compare option
+        let fieldList = getFieldList(compare, 'meta_query');
+        for (let fieldType of fieldList.fieldTypes) {
+            root = generateField(root, fieldList.multi, fieldType, fieldName, compare)
+        }
+        root.append($('<span id="delete-link" />', {
+            'id': 'delete-link'
+        }).append($('<a />', {
+            'class': 'delete wp-advanced-feed',
+            text: 'Remove filter'
+        })));
+        root.append('<hr />');
+        page.append(root);
+
+        // Update field name
+        let match = fieldName.match(/\[([0-9]{1,5})]$/);
+        field.val(fieldName.replace(match[0], `[${parseInt(match[1]) + 1}]`));
+        console.log({this: $this, compare: compare, match, fieldName: fieldName, number: parseInt(match[1]) + 1})
+    });
+
+    /**
+     * Generate a input field tag
+     * @param root {HTMLElement}
+     * @param multi {boolean}
+     * @param fieldType {string}
+     * @param fieldName {string}
+     * @param compare {null|string}
+     * @param source_type {string}
+     * @return {*|jQuery|HTMLElement}
+     */
+    function generateField(root, multi, fieldType, fieldName, compare = null, source_type = null) {
+        // Setup
         let p = $('<p />');
         let select = null;
         let name = `${fieldName}[${fieldType}]`;
         let label = $('<label />', {'for': name});
         let date = new Date();
 
-        if (fieldType !== 'before' && fieldType !== 'after' && fieldType !== 'compare') {
+        // Every field except for these fields are a select fields
+        let check = ['before', 'after', 'compare', 'meta_(not)_in', 'EXISTS', 'NOT EXISTS', 'LIKE', 'NOT LIKE'];
+        if (source_type === 'meta_query') {
+            check.push('IN');
+            check.push('NOT IN');
+        }
+        if (!check.includes(fieldType)) {
+            // Create a select field
             select = $('<select />', {
                 'type': 'text',
                 'name': name,
                 'id': name,
                 'class': 'widefat'
             });
+            // Check if multiple options may be selected
             if (multi) {
+                // Yes, add multiple attribute to select tag
                 select.prop('multiple', true);
                 select.attr('name', name + '[]')
             }
         }
+
         switch (fieldType) {
             case 'compare':
                 p.append($('<b />', {text: `Compare option: ${compare}`}));
@@ -191,7 +300,11 @@
                 p.append(inputDate);
                 p.append(inputTime);
                 break;
+            case 'meta_(not)_in':
+                // TODO :: Add new input fields
+                break;
         }
+        // Append fields to root
         p.appendTo(root);
         return root
     }

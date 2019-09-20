@@ -17,7 +17,7 @@ The roadmap will be updated when new suggestions are **being worked on**. If you
 - [x] category__not_in
 - [x] comment_count
 - [x] date_query
-- [ ] ignore_sticky_posts
+- [x] ignore_sticky_posts
 - [ ] meta_compare
 - [ ] meta_compare_key
 - [ ] meta_key
