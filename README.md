@@ -18,12 +18,7 @@ The roadmap will be updated when new suggestions are **being worked on**. If you
 - [x] comment_count
 - [x] date_query
 - [x] ignore_sticky_posts
-- [ ] meta_compare
-- [ ] meta_compare_key
-- [ ] meta_key
 - [ ] meta_query
-- [ ] meta_value
-- [ ] meta_value_num
 - [ ] menu_order
 - [ ] name
 - [ ] nopaging
@@ -81,6 +76,11 @@ The roadmap will be updated when new suggestions are **being worked on**. If you
 - [ ] paged
 - [ ] page_id
 - [ ] pagename
+- [ ] meta_compare
+- [ ] meta_compare_key
+- [ ] meta_key
+- [ ] meta_value
+- [ ] meta_value_num
 
 ## Installation
 
